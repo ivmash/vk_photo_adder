@@ -1,5 +1,9 @@
-import vk_api, requests, configparser
+import vk_api
+import requests
+import configparser
+
 from time import sleep
+
 
 # Login, password and an image
 config = configparser.ConfigParser()
@@ -12,32 +16,34 @@ vk_session = vk_api.VkApi(phone_number, password)
 vk_session.auth()
 vk = vk_session.get_api()
 
-def get_resp(album_id : int):
+def get_resp(album_id : int, files_count : int):
+
     # list of files
-    files = {'file1': open(image_path,'rb'),
-        'file2': open(image_path,'rb'),
-        'file3': open(image_path,'rb'),
-        'file4': open(image_path,'rb'),
-        'file5': open(image_path,'rb'),
-        'file6': open(image_path,'rb'),
-        'file7': open(image_path,'rb'),
-        'file8': open(image_path,'rb'),
-        'file9': open(image_path,'rb')
-    }
+    files = {}
+    for n in range(1, files_count+1):
+         files['file'+str(n)] = open(image_path,'rb')
+
     # getting server address
     upload_url = vk.photos.getUploadServer(album_id=album_id)['upload_url'] 
     # uploading images to the server
+
     return requests.post(upload_url, files=files).json()
 
 def album_10000():
+
     # album creation
     album_id = vk.photos.createAlbum(title="New album")['id']
+ 
     # uploading a photo to the server, creating a resp object
-    resp = get_resp(album_id)
+    resp = get_resp(album_id, 9)
+
     # adding to album
     count = 0
-    while count < 10000:
+    while count < 1111: # 1111 times with 9 images = 9999
         try:
+            # Print count of images after every hundered
+            if ((count*9+9) // 100) > (count*9 // 100):
+                print(f"Image {count*9+9}")
             vk.photos.save(album_id=album_id, 
                 server=resp['server'], 
                 photos_list=resp['photos_list'], 
@@ -45,10 +51,20 @@ def album_10000():
                 hash=resp['hash'])
             count += 1
         except:
-            print("Flood control; count = ",count)
+            print("Flood control; Images count = ", count*9)
             # Flood control; waiting for an hour
             sleep(3600)
             # Get a new object
-            resp = get_resp(album_id)
+            resp = get_resp(album_id, 9)
+    
+    # 9999 + 1 = 10000
+    resp = get_resp(album_id, 1)
+    vk.photos.save(album_id=album_id, 
+                server=resp['server'], 
+                photos_list=resp['photos_list'], 
+                aid=resp['aid'], 
+                hash=resp['hash'])
 
-album_10000() 
+
+if __name__ == "__main__":
+    album_10000() 
