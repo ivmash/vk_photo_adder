@@ -29,7 +29,7 @@ def get_resp(album_id : int, files_count : int):
 
     return requests.post(upload_url, files=files).json()
 
-def album_10000():
+def album(images_count : int):
 
     # album creation
     album_id = vk.photos.createAlbum(title="New album")['id']
@@ -39,7 +39,7 @@ def album_10000():
 
     # adding to album
     count = 0
-    while count < 1111: # 1111 times with 9 images = 9999
+    while count < (images_count // 9):
         try:
             # Print count of images after every hundered
             if ((count*9+9) // 100) > (count*9 // 100):
@@ -57,14 +57,14 @@ def album_10000():
             # Get a new object
             resp = get_resp(album_id, 9)
     
-    # 9999 + 1 = 10000
-    resp = get_resp(album_id, 1)
-    vk.photos.save(album_id=album_id, 
-                server=resp['server'], 
-                photos_list=resp['photos_list'], 
-                aid=resp['aid'], 
-                hash=resp['hash'])
+    if count*9 != images_count:
+        resp = get_resp(album_id, images_count % 9)
+        vk.photos.save(album_id=album_id, 
+                    server=resp['server'], 
+                    photos_list=resp['photos_list'], 
+                    aid=resp['aid'], 
+                    hash=resp['hash'])
 
 
 if __name__ == "__main__":
-    album_10000() 
+    album(10000) 
